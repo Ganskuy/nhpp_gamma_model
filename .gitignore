@@ -1,0 +1,25 @@
+# Local environments, credentials, and editor metadata
+envir/
+.venv/
+venv/
+.env
+.env.*
+!.env.example
+.vscode/
+.DS_Store
+
+# Python caches and build artefacts
+__pycache__/
+*.py[cod]
+*.so
+build/
+dist/
+*.egg-info/
+
+# Data and regenerated analysis artefacts
+data/
+outputs/
+
+# Kaggle credentials and caches
+kaggle.json
+.kaggle/
