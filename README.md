@@ -31,43 +31,43 @@ The raw dataset and all regenerated analysis outputs are intentionally excluded 
 
 ### 1. NHPP outage-arrival model
 
-Let \(N(t)\) denote the number of outage starts by time \(t\). The model assumes
+Let <i>N</i>(<i>t</i>) denote the number of outage starts by time <i>t</i>. The model assumes:
 
-\[
-N(t + \Delta t) - N(t) \sim \operatorname{Poisson}\!\left(\int_t^{t+\Delta t}\lambda(u)\,du\right),
-\]
+```text
+N(t + Δt) − N(t) ~ Poisson( ∫[t to t + Δt] λ(u) du )
+```
 
-where \(\lambda(t)\) is a time-varying outage intensity. The script aggregates valid outage starts into daily counts \(X_i\), estimates an empirical rate \(X_i/\Delta t\), then uses a centered 30-day rolling mean to obtain the simulated expected count \(\hat\lambda(t_i)\Delta t\). A Poisson draw is generated independently for every interval.
+Here, λ(<i>t</i>) is a time-varying outage intensity. The script aggregates valid outage starts into daily counts <i>X</i><sub>i</sub>, estimates an empirical rate <i>X</i><sub>i</sub> / Δ<i>t</i>, then uses a centered 30-day rolling mean to obtain the simulated expected count λ̂(<i>t</i><sub>i</sub>)Δ<i>t</i>. A Poisson draw is generated independently for every interval.
 
 This is a non-parametric intensity smoother, not a covariate-driven or seasonal NHPP. It is appropriate for describing the observed temporal pattern, but it is not an out-of-sample forecasting model: random train/test splits would break temporal dependence and are not used here.
 
 ### 2. Gamma restoration-time model
 
-For a positive restoration time \(T_r\) in hours,
+For a positive restoration time <i>T</i><sub>r</sub> in hours:
 
-\[
-T_r \sim \operatorname{Gamma}(k,\theta), \qquad
-\mathbb{E}[T_r] = k\theta, \quad
-\operatorname{Var}(T_r) = k\theta^2.
-\]
+```text
+T_r ~ Gamma(k, θ)
+E[T_r] = kθ
+Var(T_r) = kθ²
+```
 
-The pipeline first calculates method-of-moments estimates, then fits \(k\) and \(\theta\) by maximum likelihood with the location fixed at zero. Only records with a valid positive duration are used. Fixing `loc=0` respects the support of a duration variable and makes the fit reproducible.
+The pipeline first calculates method-of-moments estimates, then fits <i>k</i> and θ by maximum likelihood with the location fixed at zero. Only records with a valid positive duration are used. Fixing `loc=0` respects the support of a duration variable and makes the fit reproducible.
 
 ### 3. Scenario and reliability analysis
 
 Events whose description or tags match severe-weather and natural-disturbance terms (for example, `storm`, `wind`, `flood`, `wildfire`, or `earthquake`) form the **High-disturbance** scenario; all other events form **Normal**. Each scenario receives its own smoothed NHPP intensity and Gamma duration fit.
 
-For a horizon \(T\), expected aggregate downtime is approximated by
+For a horizon <i>T</i>, expected aggregate downtime is approximated by:
 
-\[
-\mathbb{E}[D(T)] \approx \mathbb{E}[N(T)]\,\mathbb{E}[T_r],
-\]
+```text
+E[D(T)] ≈ E[N(T)] × E[T_r]
+```
 
-and the reported availability approximation is
+The reported availability approximation is:
 
-\[
-A = 1 - \frac{D(T)}{T}.
-\]
+```text
+A = 1 − D(T) / T
+```
 
 The script also runs 500 NHPP--Gamma Monte Carlo replications. SAIDI and SAIFI are reported only as proxy indicators because the source has affected customers per event but no true total number of customers served; the maximum observed affected-customer count is used as a denominator proxy.
 
@@ -81,11 +81,11 @@ The following values come from the generated `model_parameters.json`, `reliabili
 | Positive restoration durations used by Gamma fit | 1,507 |
 | Observation horizon | 126,552 h |
 | Mean observed outage rate | 0.3120 outages/day |
-| NHPP expected total \(m(T)\) | 1,643.97 outages |
+| NHPP expected total m(T) | 1,643.97 outages |
 | NHPP one-path count MAE / RMSE | 0.4470 / 1.0044 daily outages |
-| Gamma shape \(k\) / scale \(\theta\) | 0.3938 / 123.9563 h |
+| Gamma shape k / scale θ | 0.3938 / 123.9563 h |
 | Mean observed restoration time | 48.82 h |
-| Gamma KS statistic / p-value | 0.0609 / \(2.65\times10^{-5}\) |
+| Gamma KS statistic / p-value | 0.0609 / 2.65 × 10⁻⁵ |
 | Observed aggregate downtime | 73,566.23 h |
 | Expected aggregate downtime | 80,252.80 h |
 | Observed availability approximation | 0.4187 |
